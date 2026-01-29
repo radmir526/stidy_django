@@ -2,6 +2,8 @@ venv/
 .pylintrc
 __pycache__/
 
+products/
+
 .vscde
 .idea
 .env

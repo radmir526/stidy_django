@@ -7,7 +7,9 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('cart/', include('cart.urls', namespace='cart')), # оживляем нашу ссылку на приложение корзина
     path('', include('main.urls', namespace='main')), # namespace позволяет нам создать уникальную ссылку на тот или иной url
+
 ]
 
 if settings.DEBUG:

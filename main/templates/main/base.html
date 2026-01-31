@@ -2,23 +2,52 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+
+    <!-- Адаптация под мобильные устройства -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Заголовок страницы.
+         Может быть переопределён в дочерних шаблонах -->
     <title>{% block title %}Shop{% endblock %}</title>
+
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Иконки Bootstrap -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
 </head>
 <body>
+
+    <!-- Навигационная панель -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'main:product_list' %}">Shop</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+
+            <!-- Логотип / ссылка на главную страницу -->
+            <a class="navbar-brand" href="{% url 'main:product_list' %}">
+                Shop
+            </a>
+
+            <!-- Кнопка для мобильного меню -->
+            <button class="navbar-toggler" type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
+
+            <!-- Содержимое навбара -->
             <div class="collapse navbar-collapse" id="navbarNav">
+
+                <!-- Список категорий -->
                 <ul class="navbar-nav me-auto">
+
+                    <!-- Ссылка на все товары -->
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'main:product_list' %}">Все товары</a>
+                        <a class="nav-link" href="{% url 'main:product_list' %}">
+                            Все товары
+                        </a>
                     </li>
+
+                    <!-- Динамический вывод категорий -->
                     {% for category in categories %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ category.get_absolute_url }}">
@@ -27,21 +56,25 @@
                         </li>
                     {% endfor %}
                 </ul>
+
+                <!-- Корзина -->
                 <div class="d-flex">
-                    <a href="{% url "cart:cart_detail" %}" class="btn btn-outline-light position-relative me-3">
+                    <a href="{% url "cart:cart_detail" %}"
+                       class="btn btn-outline-light position-relative me-3">
+
                         <i class="bi bi-cart"></i> Корзина
+
+                        <!-- Бейдж с количеством товаров в корзине -->
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                            
-                            {% with  total_items=cart|length  %}
-                                
+
+                            {% with total_items=cart|length %}
                                 {% if total_items > 0 %}
-                                    {{total_items}}
+                                    {{ total_items }}
                                 {% else %}
-                                0
+                                    0
                                 {% endif %}
-                                    
                             {% endwith %}
-                                
+
                         </span>
                     </a>
                 </div>
@@ -49,22 +82,30 @@
         </div>
     </nav>
 
+    <!-- Основной контент страницы -->
     <div class="container mt-4 mb-5">
         {% block content %}
         {% endblock %}
     </div>
 
+    <!-- Футер -->
     <footer class="bg-dark text-white py-4 mt-5">
         <div class="container">
             <div class="row">
+
                 <div class="col-md-4">
                     <h5>Shop</h5>
                     <p>Лучший магазин техники в вашем городе</p>
                 </div>
+
                 <div class="col-md-4">
                     <h5>Контакты</h5>
-                    <p>Email: info@techshop.ru<br>Телефон: +7 (123) 456-78-90</p>
+                    <p>
+                        Email: info@techshop.ru<br>
+                        Телефон: +7 (123) 456-78-90
+                    </p>
                 </div>
+
                 <div class="col-md-4">
                     <h5>Мы в соцсетях</h5>
                     <a href="#" class="text-white me-2"><i class="bi bi-facebook"></i></a>
@@ -72,10 +113,12 @@
                     <a href="#" class="text-white me-2"><i class="bi bi-telegram"></i></a>
                     <a href="#" class="text-white"><i class="bi bi-vk"></i></a>
                 </div>
+
             </div>
         </div>
     </footer>
 
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

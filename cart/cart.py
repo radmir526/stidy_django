@@ -1,4 +1,4 @@
-# В этом файле запишем всю основную логику работы корзины 
+# В этом файле описана логика работы корзины
 
 from django.conf import settings
 from main.models import Product
@@ -6,57 +6,79 @@ from main.models import Product
 
 class Cart:
     def __init__(self, request):
+        # Получаем сессию пользователя
         self.session = request.session
-        cart = self.session.get(settings.CART_SESSION_ID) # получаем сессию пользователя
-        if not cart: # если у пользователя нет корзины
-            cart = self.session[settings.CART_SESSION_ID] = {} # то мы просто задаем пустой кортеж
-        self.cart = cart # если корзина есть, то она остается с теми товарами, которые юзер добавил
 
+        # Пытаемся получить корзину из сессии
+        cart = self.session.get(settings.CART_SESSION_ID)
 
-    def add(self, product, quantity=1, override_quantity=False): # Метод добавления 
+        # Если корзины нет — создаём пустую
+        if not cart:
+            cart = self.session[settings.CART_SESSION_ID] = {}
+
+        # Сохраняем корзину в объекте класса
+        self.cart = cart
+
+    def add(self, product, quantity=1, override_quantity=False):
+        """
+        Добавление товара в корзину
+        :param product: объект Product
+        :param quantity: количество
+        :param override_quantity: если True, заменяем существующее количество
+        """
         product_id = str(product.id)
-        if product_id not in self.cart: # если айди продукта не находится в корзине 
+
+        # Если товар ещё не в корзине — создаём запись
+        if product_id not in self.cart:
             self.cart[product_id] = {'quantity': 0, 'price': str(product.price)}
-        
-        if override_quantity: # Если человек написал сам добавить 10 товаров, то мы их просто добавляем
+
+        # Если передано override_quantity — заменяем количество
+        if override_quantity:
             self.cart[product_id]['quantity'] = quantity
-        else: # Если человек нажимает просто плюсик по одному, то есть он добавляет товар по одному, то мы просто прибавляем к количествую
+        else:
+            # Иначе прибавляем количество
             self.cart[product_id]['quantity'] += quantity
+
         self.save()
 
-
-    def save(self): # функция которая сохраняет корзину 
+    def save(self):
+        """Сохраняем корзину в сессии"""
         self.session.modified = True
 
-
-    def remove(self, product): # уадаление продуктов из корзины 
+    def remove(self, product):
+        """Удаление товара из корзины"""
         product_id = str(product.id)
         if product_id in self.cart:
             del self.cart[product_id]
             self.save()
 
-    def __iter__(self): # эта функция проходится по корзине и выводит все свойства товаров и позволяет с ними работать
-        product_ids = self.cart.keys() # сохраняем все айдишники товаров в корзине 
-        products = Product.objects.filter(id__in=product_ids) # берем только те продукты, которые находятся в корзине 
-        cart = self.cart.copy() # дополнительно сохраняем
+    def __iter__(self):
+        """
+        Проходимся по корзине для шаблонов и расчёта сумм
+        Добавляем объект Product к каждому элементу
+        """
+        product_ids = self.cart.keys()
+        products = Product.objects.filter(id__in=product_ids)
+        cart = self.cart.copy()
 
-        for product in products: # проходимся по всем товарам 
-            cart[str(product.id)]['product'] = product # и записываем все продукты по их айди и ключу product
+        for product in products:
+            # Добавляем объект Product для удобства
+            cart[str(product.id)]['product'] = product
 
-        for item in cart.values(): # прописываем параметры наших товаров в козине
-            item['price'] = float(item['price']) # цена для одного товара 
-            item['total_price'] = item['price'] * item['quantity'] # цена для нескольких товаров
-            yield item
+        for item in cart.values():
+            item['price'] = float(item['price'])  # цена одного товара
+            item['total_price'] = item['price'] * item['quantity']  # общая цена
+            yield item  # позволяет использовать Cart как итератор
 
-    
-    def __len__(self): # метод для подсчета количества товаров в корзине 
-        return sum(item['quantity'] for item in self.cart.values()) # возвращаем сумму количества товаров 
-    
+    def __len__(self):
+        """Общее количество товаров в корзине"""
+        return sum(item['quantity'] for item in self.cart.values())
 
-    def get_total_price(self): # метод для вывода общей  стоимости корзины 
-        return sum(float(item['price']) * item['quantity'] for item in self.cart.values()) # возвращаем сумму всех товаров в корзине 
-    
+    def get_total_price(self):
+        """Общая стоимость корзины"""
+        return sum(float(item['price']) * item['quantity'] for item in self.cart.values())
 
-    def clear(self): # метод для отчистки корзины 
-        del self.session[settings.CART_SESSION_ID] # удаляем сессию которая отвечает за корзину
+    def clear(self):
+        """Очистка корзины"""
+        del self.session[settings.CART_SESSION_ID]
         self.save()

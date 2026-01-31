@@ -1,18 +1,31 @@
-# Тут мы регистрируем наши модели для админки
+# Здесь регистрируются модели для отображения в админке Django
 
 from django.contrib import admin
 from .models import Category, Product
 
-@admin.register(Category) # ТУт мы с помощью декоратора регестрируем наш класс модели Category
+
+# Регистрируем модель Category в админке
+# Используем декоратор вместо admin.site.register
+@admin.register(Category) 
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['name', 'slug'] # это те параметры, которые мы будем видеть в админке
-    prepopulated_fields = {'slug': ('name',)} # добавили автоматическое заполнение слагов, то есть ссылка будет генериться опираясь на название продукта
+        # Поля, которые отображаются в списке категорий
+    list_display = ['name', 'slug'] 
 
+    # Автоматическое заполнение поля slug на основе name
+    # Удобно, чтобы не вводить ссылки вручную
+    prepopulated_fields = {'slug': ('name',)} 
 
-@admin.register(Product) # так же регестрируем класс Product
+# Регистрируем модель Product в админке
+@admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
+        # Поля, отображаемые в списке товаров
     list_display = ['name', 'category', 'price', 'available', 'created', 'updated']
     
-    list_filter = ['available', 'created', 'updated', 'category'] # это то, по каким параметрам можно будет фильтровать в админке
-    list_editable = ['price', 'available'] # параметры, которые можно изменять
+        # Фильтры в правой части админки
+    list_filter = ['available', 'created', 'updated', 'category']
+
+        # Поля, которые можно редактировать прямо из списка
+    list_editable = ['price', 'available'] 
+
+        # Автогенерация slug по названию товара
     prepopulated_fields = {'slug': ('name',)}

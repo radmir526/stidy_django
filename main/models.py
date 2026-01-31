@@ -1,46 +1,83 @@
 from django.db import models
 from django.urls import reverse
 
+# Здесь описываются модели базы данных.
+# Каждый класс = таблица в БД
 
-# Тут мы прописываем все необходимое для нашей базы данных
+class Category(models.Model): 
 
+    # Название категории
+    # db_index=True ускоряет поиск и сортировку по этому полю
+    name = models.CharField(max_length=100, db_index=True) 
 
-class Category(models.Model): # это класс для категорий 
-    name = models.CharField(max_length=100, db_index=True) # Создаем поле name, ограничиваем длинну поля и добавляем индекс для сортировки категорий, потому что name всегда будет учавствовать там
-    slug = models.SlugField(max_length=100, unique=True) #Слаг нужен для создания ссылок например по называнию продукта https://chernaya-futbolka.com
+    # slug используется в URL
+    # unique=True гарантирует уникальность ссылок
+    slug = models.SlugField(max_length=100, unique=True) 
 
-    class Meta: # это параметры с которыми будет работать база данных и админка
+    class Meta:
+
+        # Сортировка категорий по имени по умолчанию
         ordering = ('name',)
-        verbose_name = 'Категория' # если мы будем переводить админку на русский язык
-        verbose_name_plural = 'Категории' #Множественное число 
 
-    def __str__(self): # этот метод определяет то, как у нас будет отображаться тот или иной объект в админке
+        # Названия для отображения в админке
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории' 
+
+    def __str__(self): 
+        # Определяет, как объект будет отображаться в админке
         return self.name
     
     def get_absolute_url(self):
+        # Возвращает URL страницы с товарами этой категории
+        # reverse ищет путь по имени URL, а не по строке
         return reverse('main:product_list_by_category', args=[self.slug])
 
 
-class Product(models.Model): # Прописываем модель нашего продукта
-    category = models.ForeignKey(Category, related_name='products', # в эту переменную мы засунули класс Category
+class Product(models.Model): 
+     # Связь "многие к одному" с категорией
+    # related_name позволяет обращаться:
+    # category.products.all()
+    category = models.ForeignKey(Category, related_name='products', 
                                  on_delete=models.CASCADE)
-    name = models.CharField(max_length=100, db_index=True) # Устанавливаем наименование продукта
-    slug = models.SlugField(max_length=100, unique=True) # Устанавливаем ссылки для продуктов
-    image = models.ImageField(upload_to='products/%Y/%m/%d', blank=True) # Добавляем поле с фотографиями, которые будут сохранятся в папки относительно года, месяца и дня загрузки этих фотографий, так же добавили возможность не загружать фото вовсе
-    description = models.TextField(blank=True) # устанавливаем описание товара
-    price = models.DecimalField(max_digits=10, decimal_places=2)  # устанавливаем прайс с числом с плавающей точкой
-    available = models.BooleanField(default=True) # Доступность товаров
-    created = models.DateTimeField(auto_now_add=True) # Дата создания будет появляться автоматически 
-    updated = models.DateTimeField(auto_now=True) # Дата обновления товара
+    
+    # Название товара
+    name = models.CharField(max_length=100, db_index=True) 
 
-    class Meta: # класс мета он показывает что будет показываться в админке
+        # slug используется в URL страницы товара
+    slug = models.SlugField(max_length=100, unique=True) 
+
+     # Изображение товара
+    # upload_to формирует структуру папок по дате загрузки
+    # blank=True позволяет не загружать изображение
+    image = models.ImageField(upload_to='products/%Y/%m/%d', blank=True) 
+
+        # Описание товара
+    description = models.TextField(blank=True)
+
+        # Цена
+    # DecimalField используется для денег, а не float
+    price = models.DecimalField(max_digits=10, decimal_places=2) 
+
+        # Флаг доступности товара
+    available = models.BooleanField(default=True)
+
+        # Дата создания объекта (заполняется автоматически)
+    created = models.DateTimeField(auto_now_add=True)  
+
+    # Дата последнего обновления объекта
+    updated = models.DateTimeField(auto_now=True) 
+
+
+    class Meta:
+        # Сортировка товаров по имени
         ordering = ('name',)
 
     def __str__(self):
+        # Отображение товара в админке
         return self.name
     
     def get_absolute_url(self):
-        # Возвращает URL для страницы с товарами этой категории.
-        # Используется в шаблонах для ссылок без хардкода путей. Мы не пишем сами ссылки, а они автоматически подставляются при нажатии на какой либо продукт
+         # Возвращает URL детальной страницы товара
+        # Используется в шаблонах вместо хардкода ссылок
         return reverse("main:product_detail", args=[self.id, self.slug])
     
